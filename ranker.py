@@ -33,7 +33,7 @@ __email__ 		= "corey.m.farmer@gmail.com"
 __status__ 		= "Development"
 
 
-import os, PyPDF2, csv
+import os, csv, slate3k
 
 from docopt import docopt
 from os import sys, path
@@ -184,10 +184,11 @@ class Parsing:
 		docText = ''
 		# open the file, with read/binary priviledges
 		f = open(self.file, 'rb')
-		pdf = PyPDF2.PdfFileReader(f)
-		for page in pdf.pages :
-			docText += page.extractText()
-		
+
+        ### Slate3k seems to have better pdf coverage than pypdf2.
+		pdf = slate3k.PDF(f)
+		for page in pdf :
+			docText += page
 		f.close()
 		return docText.strip() or None
 
@@ -294,8 +295,13 @@ class File :
 		if len(content) == 0 :
 			raise Exception("No keywords found for ranking, in %s." % self.keyword_file)
 		
+		# Remove whitespace around keywords
 		self.keywords_list = [l.strip() for l in content]
-		# return self for method chaining
+
+        # Remove empty lines that were in the keyword file (empty list items here)
+		self.keywords_list = [l for l in self.keywords_list if l]
+		
+        # return self for method chaining
 		return self
 
 
